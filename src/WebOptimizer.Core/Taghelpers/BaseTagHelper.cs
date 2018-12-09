@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc.TagHelpers.Internal;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.AspNetCore.Razor.TagHelpers;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Options;
 
@@ -15,7 +16,7 @@ namespace WebOptimizer.Taghelpers
     /// <seealso cref="Microsoft.AspNetCore.Razor.TagHelpers.TagHelper" />
     public abstract class BaseTagHelper : TagHelper
     {
-        private FileVersionProvider _fileProvider;
+        private IFileVersionProvider _fileProvider;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="BaseTagHelper"/> class.
@@ -83,13 +84,10 @@ namespace WebOptimizer.Taghelpers
         {
             if (_fileProvider == null)
             {
-                _fileProvider = new FileVersionProvider(
-                    asset.GetFileProvider(HostingEnvironment),
-                    Cache,
-                    ViewContext.HttpContext.Request.PathBase);
+                _fileProvider = ViewContext.HttpContext.RequestServices.GetRequiredService<IFileVersionProvider>();
             }
 
-            return _fileProvider.AddFileVersionToPath(fileName);
+            return _fileProvider.AddFileVersionToPath(ViewContext.HttpContext.Request.PathBase, fileName);
         }
 
         /// <summary>
